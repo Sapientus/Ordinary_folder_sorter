@@ -128,7 +128,7 @@ def check_empty_dir(path):       #this one seems to work, it deletes empty direc
     except PermissionError:
         print('It is fotbidden to  delete this directory')
 
-if __name__ == '__main__':  #indicates that we are gonna use given files` name in the command line
+def find_path():
     path = sys.argv[1]
     print(f'Start in {path}')
 
@@ -142,3 +142,6 @@ if __name__ == '__main__':  #indicates that we are gonna use given files` name i
     print(f"Archives: {archives}\n")
     print(f"Known extensions: {known_extensions}\n")
     print(f"Unknown extensions: {unknown_extensions}\n")
+
+if __name__ == '__main__':  #indicates that we are gonna use given files` name in the command line
+    find_path()
