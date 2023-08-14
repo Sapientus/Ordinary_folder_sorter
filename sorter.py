@@ -11,8 +11,6 @@ audio = []
 archives =  []
 known_extensions = set()
 unknown_extensions = set()
-all_adresses = []
-all_folders = ['Images', 'Video', 'Documents', 'Audio', 'Archives']
 
 extensions_we_sort = {     #this is our dictionary, we`ll use it to find all extensions we need
     'jpeg' : images, 
@@ -38,15 +36,26 @@ extensions_we_sort = {     #this is our dictionary, we`ll use it to find all ext
     'tar' : archives
 }
 
-def sorting(folder_path):     #here we're sorting our files into lists
+def sorting(folder_path):     #here we're sorting our files into lists and folders
     for i in folder_path.iterdir():
+        new_file_name = normalize(i.stem) + i.suffix
         if i.is_file():
             for key in extensions_we_sort.keys():
                 if str(i.suffix.replace('.', '')) in extensions_we_sort.keys():
-                    all_adresses.append(i)
                     if str(i.suffix.replace('.', '')) == key:
-                        extensions_we_sort[key].append(i.name)
+                        extensions_we_sort[key].append(new_file_name)
                         known_extensions.add(str(i.suffix.replace('.', '')))
+                        end_folder = folder_path.joinpath(key)
+                        end_folder.mkdir(exist_ok=True)
+                        new_file_path = end_folder.joinpath(new_file_name)
+                        try:
+                            i.rename(new_file_path)
+                        except FileExistsError:
+                            continue
+                        if extensions_we_sort[key] == archives:
+                            base_archive_dir = end_folder.joinpath(normalize(i.stem))
+                            base_archive_dir.mkdir(exist_ok=True)
+                            shutil.unpack_archive(new_file_path, base_archive_dir)
                 else:
                     unknown_extensions.add(str(i.suffix.replace('.', '')))
         else:
@@ -71,32 +80,7 @@ def normalize(file_name):   #don`t worry, buddy, this will change scary files` n
             i = '_'
             other_file_name += i
     return other_file_name
-        
-
-def create_dir(folder_path):        #I died when I worte this shit, this function is supposed to create directories and move files but it doesn't work!
-    try:
-        for i in all_folders:
-            path = os.path.join(folder_path, i)
-            os.makedirs(path, exist_ok=True)
-            for file in all_adresses:
-                file = Path(file)
-                if file in archives:
-                    name = file.stem
-                    new_path = os.path.join(path, str(normalize(str(name))))
-                    os.makedirs(new_path, exist_ok=True)
-                    shutil.unpack_archive(file, new_path)
-                elif file.name in all_folders:
-                    continue
-                else:
-                    name = file.name
-                    other_path = os.path.join(path, normalize(str(name)))
-                    try:
-                        shutil.move(file, other_path)
-                    except:
-                        continue
-    except FileNotFoundError:
-        print("Couldn't find a file")
-
+    
 def main(folder_path):
     path = folder_path
     sorting(path)
